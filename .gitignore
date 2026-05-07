@@ -1,0 +1,16 @@
+.DS_Store
+
+# Airflow runtime artifacts
+airflow/.env
+airflow/airflow.cfg
+airflow/airflow.db
+airflow/logs/
+airflow/**/__pycache__/
+airflow/**/*.py[cod]
+
+# Gust local development artifacts
+gust/.env
+gust/.elixir_ls/
+gust/_build/
+gust/deps/
+gust/erl_crash.dump
