@@ -1,0 +1,88 @@
+x-gust-env: &gust-env
+  B64_SECRETS_CLOAK_KEY: zR9t+jrodoFM1A9mRQfBnWiF6Aa4N+Y/lxjEH/iEkCOMBy+zTcuhvUthrPnpL5ZPUAsW0d7nofH50aE+1W78MA==
+  SECRET_KEY_BASE: bLbmiCSorsSE8omsATQayI4cvIYrOfIjFXqcsj9NrgYNIALuT7Adj7kpA5MfqxMj
+  DATABASE_URL: "ecto://gust:gust@db:5432/gust_prod"
+  POOL_SIZE: "10"
+  RELEASE_COOKIE: "gust_secret_cookie_123"
+  DNS_CLUSTER_QUERY: "gust,gust-web"
+
+x-gust-web-env: &gust-web-env
+  PHX_SERVER: "true"
+  PHX_HOST: "localhost"
+  PORT: "4000"
+  BASIC_AUTH_USER: admin # WARNING: change before deploying to production
+  BASIC_AUTH_PASS: admin # WARNING: change before deploying to production
+
+x-gust-depends-on-db: &gust-depends-on-db
+  depends_on:
+    db:
+      condition: service_healthy
+
+x-gust-volumes: &gust-volumes
+  volumes:
+    - ./dags:/dags 
+
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: postgres_gust_benchmark_db
+    environment:
+      POSTGRES_USER: gust
+      POSTGRES_PASSWORD: gust
+      POSTGRES_DB: gust_prod
+    ports:
+      - "5432:5432"
+    volumes:
+      - gust_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gust -d gust_prod"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  mock-server:
+    build:
+      context: ./mock_server
+    environment:
+      MOCK_DELAY_SECONDS: "2"
+      MOCK_ITEM_COUNT: "1000"
+    ports:
+      - "8001:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  gust-init:
+    image: marcioklepacz/gust:0.1.31
+    <<: *gust-depends-on-db
+    command: ["/app/bin/migrate"]
+    restart: "no"
+    environment:
+      <<: [*gust-env, *gust-web-env]
+      PHX_SERVER: "false"
+      GUST_ROLE: core
+
+  gust:
+    image: marcioklepacz/gust:0.1.31
+    <<: [*gust-depends-on-db, *gust-volumes]
+    command: ["/app/bin/start-core"]
+    environment:
+      <<: *gust-env
+      GUST_ROLE: core
+      PHX_SERVER: "false"
+
+  gust-web:
+    image: marcioklepacz/gust_web:0.1.31
+    <<: [*gust-depends-on-db, *gust-volumes]
+    ports:
+      - "4000:4000"
+    command: ["/app/bin/server"]
+    environment:
+      <<: [*gust-env, *gust-web-env]
+      GUST_ROLE: web
+
+volumes:
+  gust_pgdata:
