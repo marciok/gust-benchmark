@@ -1,6 +1,6 @@
 # Gust Benchmark
 
-This repository compares **Gust** and **Apache Airflow** under the same workflow and Docker-based setup.
+This repository compares [**Gust**](https://github.com/marciok/gust) and **Apache Airflow** under the same workflow and Docker-based setup.
 
 
 ## TL;DR
