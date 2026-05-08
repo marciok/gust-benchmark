@@ -2,6 +2,13 @@
 
 This repository compares **Gust** and **Apache Airflow** under the same workflow and Docker-based setup.
 
+
+## TL;DR
+Gust is significantly more resource-efficient than Apache Airflow, requiring up to $4.4\times$ less memory when idle and roughly half the peak RAM to handle identical parallel workloads, while maintaining a lower CPU footprint during orchestration.
+
+<img width="1600" height="600" alt="Code_Generated_Image (3)" src="https://github.com/user-attachments/assets/34be8e55-49d8-4d61-a1b0-aa5eb738420b" />
+
+
 The benchmark uses an equivalent three-step pipeline in both systems:
 
 1. Fetch data from a mock HTTP server
@@ -109,6 +116,8 @@ Versions used for the recorded results:
 | Idle | 137% | ~5% | Gust stayed close to idle at rest |
 | 50 parallel runs | 1,419% | 1,114% | Gust showed lower CPU pressure |
 | 80 parallel runs | 1,313% | 1,198% | Gust remained slightly lower |
+
+
 
 ## Takeaways
 
