@@ -1,4 +1,12 @@
-# Gust VS Airflow Benchmark
+# Gust vs Airflow Benchmark
+
+This Livebook runs the local Docker benchmark used to compare **Gust** and **Apache Airflow**.
+
+It is designed to:
+
+- trigger concurrent workflow runs
+- collect `docker stats` samples during execution
+- write CSV files with timing and container resource data
 
 ```elixir
 Mix.install([
@@ -10,15 +18,25 @@ Mix.install([
 
 ## Setup Overview
 
-The goal is to measure resources consumptions between Gust and Airflow.
+The goal is to compare resource consumption between Gust and Airflow while running the same mock I/O workflow.
 
-For th following scenários:
+The benchmark scenarios are:
 
 * 50 parallel runs
 * 80 parallel runs
-* 100 parallel runs: (However Airflow exploed docker resources and it was not possible)
+* 100 parallel runs
 
-The docker was restared for each run and the tests were ran individiaully
+In the environment used for the original benchmark, Airflow did not complete the 100-run scenario, while Gust did.
+
+For consistent results:
+
+- restart the Docker stack between scenarios
+- run each scenario independently
+- collect results from the same host environment
+
+Generated CSV files are written to `benchmark_results/`.
+
+## Benchmark Helpers
 
 ```elixir
 defmodule Benchmark do
@@ -179,6 +197,8 @@ defmodule Benchmark do
 end
 ```
 
+## Docker Wrapper
+
 ```elixir
 defmodule Docker do
   defstruct bin: nil, benchmark: nil
@@ -191,6 +211,8 @@ defmodule Docker do
   end
 end
 ```
+
+## Triggering And Monitoring
 
 ```elixir
 defmodule DockerRunner do
@@ -310,6 +332,8 @@ end
 
 ```
 
+## Run Helper
+
 ```elixir
 defmodule Runner do
   def run(%{cmd: cmd, proj_path: proj_path, target: target, service: service}) do
@@ -327,6 +351,10 @@ defmodule Runner do
   end
 end
 ```
+
+## Example Invocations
+
+Uncomment the target you want to run. In the sample below, the Airflow invocation is enabled and the Gust example remains commented out.
 
 ```elixir
 # Runner.run(%{
